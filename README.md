@@ -70,6 +70,13 @@ IFS-Fractal-Generator/
 │   │   └── validator.py
 │   └── mcp/                    # MCP integration (future)
 │
+├── tests/                       # 🧪 Test suite (TDD approach)
+│   ├── unit/                   # Fast unit tests (no Blender)
+│   ├── integration/            # Integration tests (Blender API)
+│   ├── presets/               # Preset validation tests
+│   ├── fixtures/              # Test data and mocks
+│   └── conftest.py            # Pytest configuration
+│
 └── assets/                      # 🎨 Visual resources
     ├── icons/                  # UI icons
     ├── reference_images/       # Mathematical diagrams
@@ -207,20 +214,57 @@ See all presets in [`src/presets/`](./src/presets/).
 
 ## 🛠️ Development
 
+### Development Methodology: Test-Driven Development (TDD)
+
+This project follows **TDD principles**: Write tests first, then implement features.
+
+**Red-Green-Refactor Cycle**:
+1. 🔴 **Red**: Write failing test describing desired behavior
+2. 🟢 **Green**: Write minimal code to make test pass
+3. ♻️ **Refactor**: Improve code while keeping tests green
+
+**Coverage Goals**:
+- Minimum: 80% overall coverage
+- Critical paths (preset loading, validation): 95%+
+- Integration tests: 70%+
+
 ### Current Status: Phase 1
 **In Progress**: Core Geometry Nodes implementation
 
 - [x] Project structure and documentation
+- [x] TDD workflow and test infrastructure
+- [ ] Unit tests for preset loading
 - [ ] Repeat Zone node network
+- [ ] Integration tests for node group
 - [ ] Transform application logic
 - [ ] Color mapping system
 - [ ] Preset schema definition
 
 See [Development Plan](./docs/development-plan.md) for complete roadmap.
 
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest tests/
+
+# Run unit tests only (fast)
+pytest tests/unit/
+
+# Run with coverage
+pytest --cov=src --cov-report=html tests/
+
+# Install pre-commit hooks
+pre-commit install
+```
+
 ### Contributing
 
 Contributions welcome! Areas of interest:
+- **Test Writing**: Expand test coverage (TDD approach)
 - **Node Design**: Optimize repeat zone logic
 - **Preset Creation**: New fractal configurations
 - **Documentation**: Tutorials and examples
@@ -229,10 +273,38 @@ Contributions welcome! Areas of interest:
 ### Setting Up Development Environment
 
 1. **Fork and clone** the repository
-2. **Install Blender 4.0+**
-3. **Read architecture docs**: [`docs/architecture.md`](./docs/architecture.md)
-4. **Check development plan**: [`docs/development-plan.md`](./docs/development-plan.md)
-5. **Pick a task** and open an issue to discuss
+   ```bash
+   git clone https://github.com/yourusername/IFS-Fractal-Generator.git
+   cd IFS-Fractal-Generator
+   ```
+
+2. **Install development dependencies**
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+3. **Install pre-commit hooks**
+   ```bash
+   pre-commit install
+   ```
+
+4. **Run tests to verify setup**
+   ```bash
+   pytest tests/unit/  # Should pass (will add tests in Phase 1)
+   ```
+
+5. **Install Blender 4.0+** for integration tests
+
+6. **Read architecture docs**: [`docs/architecture.md`](./docs/architecture.md)
+
+7. **Check development plan**: [`docs/development-plan.md`](./docs/development-plan.md)
+
+8. **Follow TDD workflow**:
+   - Write test first (RED)
+   - Implement feature (GREEN)
+   - Refactor (keep GREEN)
+
+9. **Pick a task** and open an issue to discuss
 
 ---
 

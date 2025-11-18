@@ -1,0 +1,749 @@
+# IFS Fractal Generator - Cursor Rules
+
+## Project Context
+
+This is the **IFS Fractal Generator** - a pure Geometry Nodes implementation of Iterated Function Systems for Blender 4.0+. The project generates self-similar fractals (Barnsley Fern, Sierpiński Triangle, Menger Cube) through recursive transformation of point clouds.
+
+**Current Phase**: Phase 1 (Core Geometry Nodes Implementation)  
+**Tech Stack**: Blender Geometry Nodes (primary), Python (utilities), JSON (presets), MCP (future)
+
+## Core Principles
+
+1. **Geometry Nodes First**: Core fractal logic is 100% Geometry Nodes - no Python execution at runtime
+2. **Preset-Driven**: All fractal configurations stored in validated JSON files
+3. **Performance-Conscious**: Instancing-first approach, iteration limits, preview modes
+4. **Documentation Alignment**: All code must align with `docs/architecture.md` and development plan
+5. **Future-Ready**: Design decisions anticipate MCP integration (Phase 5)
+
+## Key Documentation
+
+- **Architecture**: `docs/architecture.md` - System design and constraints
+- **Development Plan**: `docs/development-plan.md` - Current phase and milestones
+- **Glossary**: `docs/glossary.md` - Terminology reference (use these terms!)
+- **Quick Ref**: `docs/quick-reference.md` - Parameters, patterns, troubleshooting
+- **Diagrams**: `docs/diagrams/` - Visual system understanding
+
+**Before coding, check**: Current phase milestones in `docs/development-plan.md`
+
+## Terminology (Use Consistently)
+
+Reference `docs/glossary.md` for full definitions. Key terms:
+
+- **IFS** (Iterated Function System) - not "recursive fractal system"
+- **Transform Set** - collection of affine transformations
+- **Repeat Zone** - Blender's iteration construct (not "loop node")
+- **Preset** - JSON configuration file (not "template" or "config")
+- **Instance/Instancing** - geometry references (not "duplication")
+- **Realize** - converting instances to mesh (not "bake" or "solidify")
+- **Weight** - probability value 0-1 (not "chance" or "likelihood")
+- **Iteration** - single IFS step (not "recursion level" or "depth")
+
+## File Organization
+
+```
+src/
+├── geometry_nodes/     # .blend files with node groups
+├── presets/           # JSON fractal configurations + schema
+├── utils/             # Python helpers (preset loader, validator)
+└── mcp/               # Future: MCP server implementation
+
+tests/                 # Test suite (TDD approach)
+├── unit/              # Unit tests for Python modules
+├── integration/       # Integration tests (Blender API)
+├── presets/           # Preset validation tests
+├── fixtures/          # Test data and mock presets
+└── conftest.py        # Pytest configuration
+
+docs/                  # Architecture, plans, diagrams
+assets/                # Icons, references, renders
+```
+
+**Naming Conventions**:
+- Python: `snake_case` for modules/functions
+- Node Groups: `PascalCase` (e.g., `IFS_Generator`)
+- Presets: `lowercase.json` (e.g., `barnsley.json`)
+- Constants: `UPPER_SNAKE_CASE`
+
+## JSON Preset Schema
+
+All presets must validate against `src/presets/schema.json`:
+
+```json
+{
+  "name": "Fractal Name",
+  "description": "Brief explanation",
+  "iterations": 8,
+  "seed": 42,
+  "instance_base": "Cube",
+  "transforms": [
+    {
+      "scale": [0.5, 0.5, 0.5],
+      "rotation": [0, 0, 45],
+      "translation": [1, 0, 0],
+      "weight": 0.33
+    }
+  ],
+  "color_palette": {
+    "mode": "iteration_depth",
+    "stops": [[0, "#1B5E20"], [1, "#81C784"]]
+  }
+}
+```
+
+**Required fields**: name, iterations, transforms  
+**Validate before commit**: Run schema validator
+
+## Python Code Style
+
+- **Format**: Follow PEP 8, use Black formatter
+- **Imports**: Group by stdlib, third-party, local; use absolute imports
+- **Type Hints**: Required for function signatures
+- **Docstrings**: Google style for all public functions
+- **Blender API**: Import as `import bpy`, access via full paths
+
+**Example**:
+```python
+import bpy
+from pathlib import Path
+from typing import Dict, Any
+
+def load_preset(preset_name: str) -> Dict[str, Any]:
+    """Load and validate a fractal preset from JSON.
+    
+    Args:
+        preset_name: Name of preset file (without .json extension)
+        
+    Returns:
+        Validated preset dictionary
+        
+    Raises:
+        FileNotFoundError: If preset doesn't exist
+        ValidationError: If schema validation fails
+    """
+    # Implementation
+```
+
+## Geometry Nodes Guidelines
+
+**Node Organization**:
+- Use **Frames** to group related nodes (label clearly)
+- Name all nodes descriptively (not "Math.001")
+- Use **Reroutes** sparingly, prefer clean connections
+- Document complex logic with **Annotation** nodes
+
+**Performance Rules**:
+- Always use **instancing** before realization
+- Limit max iterations to **12** (hard cap)
+- Implement **preview mode** (reduced iterations)
+- Use **Merge by Distance** carefully (expensive)
+
+**Repeat Zone Pattern**:
+```
+Input → Initialize → Repeat Zone [
+  Split → Transform Branches → Probabilistic Selection → Merge → Capture Iteration
+] → Output Modulation → Color Mapping
+```
+
+## Performance Constraints
+
+**Critical Limits** (from `docs/architecture.md` §4):
+- Max iterations: 12 (enforced)
+- Max transforms: 8 (current design)
+- Point count formula: `Transforms^Iterations`
+- Target viewport: 60fps at 8 iterations
+- Memory warning: > 10M points
+
+**Always consider**:
+- What's the point count at max iterations?
+- Does this need preview mode?
+- Can this use instancing instead of realization?
+
+## Git Workflow
+
+**Branch Naming**:
+- `feature/description` - new features
+- `fix/description` - bug fixes
+- `docs/description` - documentation only
+- `refactor/description` - code improvements
+
+**Commit Messages**:
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`  
+Scopes: `nodes`, `presets`, `utils`, `mcp`, `docs`, `assets`
+
+**Examples**:
+- `feat(nodes): implement repeat zone with 4-transform branching`
+- `fix(presets): correct Barnsley Fern weight distribution`
+- `docs(architecture): add MCP integration sequence diagram`
+- `perf(nodes): optimize merge operations in repeat zone`
+
+## Test-Driven Development (TDD)
+
+**We follow TDD principles**: Write tests first, then implement features.
+
+### Test Structure
+
+```
+tests/
+├── unit/                      # Fast, isolated tests
+│   ├── test_preset_loader.py
+│   ├── test_validator.py
+│   ├── test_math_helpers.py
+│   └── test_color_utils.py
+├── integration/               # Tests requiring Blender
+│   ├── test_node_group.py
+│   ├── test_preset_application.py
+│   └── test_geometry_output.py
+├── presets/                   # Preset-specific tests
+│   ├── test_schema_validation.py
+│   ├── test_barnsley.py
+│   └── test_sierpinski.py
+├── fixtures/                  # Test data
+│   ├── valid_presets/
+│   ├── invalid_presets/
+│   └── mock_node_groups/
+└── conftest.py               # Pytest configuration
+```
+
+### Testing Framework
+
+**Primary**: pytest  
+**Blender Tests**: pytest-blender or fake-bpy-module for mocking  
+**Coverage**: pytest-cov (target 80%+)
+
+### TDD Workflow
+
+1. **Red**: Write failing test that describes desired behavior
+2. **Green**: Write minimal code to make test pass
+3. **Refactor**: Improve code while keeping tests green
+
+**Example Flow**:
+```python
+# 1. RED: Write test first (tests/unit/test_preset_loader.py)
+def test_load_preset_returns_dict():
+    preset = load_preset("barnsley")
+    assert isinstance(preset, dict)
+    assert "name" in preset
+    assert "transforms" in preset
+
+# 2. GREEN: Implement minimal solution (src/utils/preset_loader.py)
+def load_preset(preset_name: str) -> Dict[str, Any]:
+    path = Path(f"src/presets/{preset_name}.json")
+    with open(path) as f:
+        return json.load(f)
+
+# 3. REFACTOR: Add validation, error handling, etc.
+def load_preset(preset_name: str) -> Dict[str, Any]:
+    """Load and validate preset from JSON."""
+    path = Path(f"src/presets/{preset_name}.json")
+    if not path.exists():
+        raise FileNotFoundError(f"Preset not found: {preset_name}")
+    
+    with open(path) as f:
+        data = json.load(f)
+    
+    validate_preset(data)  # Raises ValidationError if invalid
+    return data
+```
+
+### Unit Tests (Fast, No Blender)
+
+**What to Test**:
+- Preset loading and parsing
+- JSON schema validation
+- Math utilities (transformations, color conversions)
+- File path handling
+- Error handling and edge cases
+
+**Example**:
+```python
+# tests/unit/test_preset_loader.py
+import pytest
+from pathlib import Path
+from utils.preset_loader import load_preset, PresetNotFoundError
+
+def test_load_valid_preset():
+    preset = load_preset("barnsley")
+    assert preset["name"] == "Barnsley Fern"
+    assert len(preset["transforms"]) == 4
+
+def test_load_nonexistent_preset_raises_error():
+    with pytest.raises(PresetNotFoundError):
+        load_preset("nonexistent")
+
+def test_load_invalid_json_raises_error():
+    with pytest.raises(json.JSONDecodeError):
+        load_preset("malformed")
+```
+
+### Integration Tests (Require Blender)
+
+**What to Test**:
+- Node group creation and updates
+- Preset application to node groups
+- Geometry output validation
+- Point count calculations
+- Attribute storage and retrieval
+
+**Setup**:
+```python
+# tests/conftest.py
+import pytest
+import bpy
+
+@pytest.fixture
+def clean_scene():
+    """Provide clean Blender scene for each test."""
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    yield bpy.context.scene
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
+@pytest.fixture
+def ifs_node_group():
+    """Provide IFS generator node group."""
+    # Load or create node group
+    return bpy.data.node_groups.get("IFS_Generator")
+```
+
+**Example**:
+```python
+# tests/integration/test_node_group.py
+import pytest
+import bpy
+
+def test_node_group_has_required_inputs(ifs_node_group):
+    inputs = [input.name for input in ifs_node_group.inputs]
+    assert "Iterations" in inputs
+    assert "Seed" in inputs
+    assert "Instance Mesh" in inputs
+
+def test_applying_preset_updates_parameters(clean_scene, ifs_node_group):
+    from utils.preset_loader import load_preset, apply_preset
+    
+    preset = load_preset("barnsley")
+    apply_preset(preset, ifs_node_group)
+    
+    assert ifs_node_group.inputs["Iterations"].default_value == 10
+    assert ifs_node_group.inputs["Seed"].default_value == 42
+```
+
+### Preset Tests
+
+**What to Test**:
+- Schema validation for all presets
+- Required fields present
+- Value ranges correct
+- Weight sums valid (0-1 per transform)
+- Point count calculations
+
+**Example**:
+```python
+# tests/presets/test_schema_validation.py
+import pytest
+import json
+from pathlib import Path
+from jsonschema import validate, ValidationError
+
+@pytest.fixture
+def schema():
+    with open("src/presets/schema.json") as f:
+        return json.load(f)
+
+@pytest.mark.parametrize("preset_file", Path("src/presets").glob("*.json"))
+def test_all_presets_validate(preset_file, schema):
+    """Ensure all presets in repository are valid."""
+    if preset_file.name == "schema.json":
+        pytest.skip("Skip schema file itself")
+    
+    with open(preset_file) as f:
+        preset = json.load(f)
+    
+    validate(preset, schema)  # Raises if invalid
+
+def test_barnsley_preset_structure(schema):
+    with open("src/presets/barnsley.json") as f:
+        preset = json.load(f)
+    
+    assert preset["name"] == "Barnsley Fern"
+    assert preset["iterations"] == 10
+    assert len(preset["transforms"]) == 4
+    
+    # Test weight distribution
+    weights = [t["weight"] for t in preset["transforms"]]
+    assert sum(weights) == pytest.approx(1.0)
+```
+
+### Test Fixtures
+
+Create reusable test data:
+
+```python
+# tests/fixtures/valid_presets/minimal.json
+{
+  "name": "Minimal Test Fractal",
+  "iterations": 3,
+  "transforms": [
+    {
+      "scale": [0.5, 0.5, 0.5],
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, 0],
+      "weight": 1.0
+    }
+  ]
+}
+
+# tests/fixtures/invalid_presets/missing_name.json
+{
+  "iterations": 5,
+  "transforms": []
+}
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run unit tests only (fast)
+pytest tests/unit/
+
+# Run with coverage
+pytest --cov=src --cov-report=html tests/
+
+# Run specific test file
+pytest tests/unit/test_preset_loader.py
+
+# Run with verbose output
+pytest -v tests/
+
+# Run tests matching pattern
+pytest -k "preset" tests/
+```
+
+### Test Coverage Goals
+
+**Minimum Coverage**: 80%  
+**Target Coverage**: 90%+
+
+**Priority Coverage Areas**:
+1. **Critical**: Preset loading, validation (100%)
+2. **High**: Math utilities, file handling (90%+)
+3. **Medium**: Integration tests (80%+)
+4. **Low**: UI code, MCP layer (Phase 5)
+
+### Continuous Integration
+
+**Pre-commit Hooks**:
+```bash
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: Run unit tests
+        entry: pytest tests/unit/
+        language: system
+        pass_filenames: false
+```
+
+**GitHub Actions** (future):
+```yaml
+# .github/workflows/test.yml
+name: Test Suite
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - run: pip install -r requirements-dev.txt
+      - run: pytest tests/unit/ --cov=src
+```
+
+### Performance Tests
+
+**What to Test**:
+- Point count calculations match formula
+- Iteration limits enforced
+- Memory usage within bounds
+- Viewport FPS meets targets
+
+**Example**:
+```python
+# tests/integration/test_performance.py
+import pytest
+
+@pytest.mark.parametrize("transforms,iterations,expected", [
+    (2, 4, 16),
+    (3, 6, 729),
+    (4, 8, 65536),
+])
+def test_point_count_calculation(transforms, iterations, expected):
+    actual = calculate_point_count(transforms, iterations)
+    assert actual == expected
+
+def test_iteration_limit_enforced():
+    with pytest.raises(ValueError, match="Maximum 12 iterations"):
+        create_fractal(iterations=15)
+```
+
+### Test Documentation
+
+**Each test should**:
+- Have descriptive name explaining what it tests
+- Include docstring for complex tests
+- Use arrange-act-assert pattern
+- Be independent (no shared state)
+
+**Example**:
+```python
+def test_preset_with_invalid_weight_range_raises_error():
+    """
+    Ensure presets with weights outside [0,1] range are rejected.
+    
+    Weight values must be probabilities between 0 and 1.
+    Values outside this range are mathematically invalid for IFS.
+    """
+    # Arrange
+    invalid_preset = {
+        "name": "Invalid",
+        "iterations": 5,
+        "transforms": [{"weight": 1.5}]  # Invalid: > 1
+    }
+    
+    # Act & Assert
+    with pytest.raises(ValidationError, match="weight.*must be.*0.*1"):
+        validate_preset(invalid_preset)
+```
+
+### Mocking Blender API
+
+For unit tests without Blender:
+
+```python
+# tests/conftest.py
+import pytest
+from unittest.mock import MagicMock
+
+@pytest.fixture
+def mock_bpy():
+    """Mock Blender Python API for unit tests."""
+    import sys
+    mock = MagicMock()
+    sys.modules['bpy'] = mock
+    yield mock
+    del sys.modules['bpy']
+```
+
+### TDD Best Practices
+
+1. **Write test first**: Don't code until test exists
+2. **One test, one concept**: Each test validates one thing
+3. **Fast tests**: Unit tests should run in milliseconds
+4. **Isolated tests**: No dependencies between tests
+5. **Readable tests**: Tests are documentation
+6. **Edge cases**: Test boundaries, errors, invalid input
+7. **Refactor often**: Keep tests and code clean
+
+### Test Naming Convention
+
+```python
+def test_<function_name>_<scenario>_<expected_behavior>():
+    pass
+
+# Examples:
+def test_load_preset_with_valid_file_returns_dict():
+def test_load_preset_with_missing_file_raises_error():
+def test_validate_preset_with_negative_iterations_fails():
+```
+
+### When to Write Tests
+
+**Always**:
+- Before implementing new features
+- When fixing bugs (regression tests)
+- For critical paths (preset loading, validation)
+- For complex logic (transform calculations)
+
+**Optional**:
+- Simple getters/setters
+- Trivial formatting functions
+- Proof-of-concept code (write tests when stabilizing)
+
+### Test-First Development Cycle
+
+```
+1. Write test describing feature
+2. Run test (should fail - RED)
+3. Write minimal code to pass test
+4. Run test (should pass - GREEN)
+5. Refactor code for clarity
+6. Run test (still GREEN)
+7. Commit changes
+8. Repeat
+```
+
+## Common Patterns
+
+### Loading a Preset (Python)
+```python
+from utils.preset_loader import load_preset, apply_to_node_group
+
+preset = load_preset("barnsley")
+node_group = bpy.data.node_groups["IFS_Generator"]
+apply_to_node_group(preset, node_group)
+```
+
+### Probabilistic Node Branching
+```
+Random Value (Seed + Index) → Compare (< Weight) → Switch (Geometry/Empty) → Join
+```
+
+### Iteration Attribute Capture
+```
+Repeat Zone → Index Node → Store Named Attribute ["iteration"] → Use in Color Ramp
+```
+
+## Documentation Updates
+
+**When to update docs**:
+- Architecture changes → `docs/architecture.md`
+- Completed milestones → `docs/development-plan.md` (check boxes)
+- New terms → `docs/glossary.md`
+- New patterns → `docs/quick-reference.md`
+- Diagram changes → `docs/diagrams/*.md`
+
+**Mermaid Diagrams**:
+- Validate syntax before commit (use mermaid.live)
+- Follow existing color scheme (green=core, blue=data, orange=future)
+- Include legends for complex diagrams
+- Keep node count manageable (< 50 nodes per diagram)
+
+## Error Handling
+
+**Python**:
+```python
+from typing import Optional
+
+def safe_operation() -> Optional[Result]:
+    """Operation that might fail gracefully."""
+    try:
+        # Operation
+        return result
+    except SpecificError as e:
+        logger.error(f"Operation failed: {e}")
+        return None
+```
+
+**User-Facing Errors**:
+- Validate inputs before processing
+- Provide actionable error messages
+- Reference documentation for fixes
+- Log technical details, show user-friendly message
+
+## AI Assistant Guidelines
+
+When helping with this project:
+
+1. **Check current phase**: See `docs/development-plan.md` for active milestones
+2. **Use correct terminology**: Reference `docs/glossary.md`
+3. **Respect constraints**: Max 12 iterations, 8 transforms, instancing-first
+4. **Suggest, don't assume**: Ask before major architecture changes
+5. **Reference docs**: Cite specific sections (e.g., "per architecture.md §2.1")
+6. **Validate presets**: Check against schema before suggesting
+7. **Consider performance**: Always mention point count implications
+8. **Update docs**: Remind to update relevant documentation
+
+## Phase-Specific Focus
+
+**Current Phase: Phase 1 (Weeks 1-3)**
+
+**Active Milestones**:
+- [ ] 1.1: Basic Repeat Zone Structure
+- [ ] 1.2: Single Transform Application
+- [ ] 1.3: Multi-Transform System (4-8 branches)
+- [ ] 1.4: Color & Output Modulation
+
+**Priority Tasks**:
+1. Build repeat zone with iteration counter
+2. Implement transform node chain
+3. Add probabilistic branching logic
+4. Capture iteration attributes for color
+
+**Out of Scope** (defer to later phases):
+- UI panel creation (Phase 4)
+- MCP integration (Phase 5)
+- Performance optimization beyond basic instancing (Phase 3)
+- Advanced export formats (Phase 3-4)
+
+## Quick References
+
+**Parameter Ranges**:
+- Iterations: 1-12 (recommend 6-8 for preview)
+- Scale: 0.1-1.0 (> 1.0 causes explosion)
+- Rotation: -360 to 360 degrees
+- Translation: -10 to 10 Blender units
+- Weight: 0.0-1.0 (probability)
+
+**Classic Presets**:
+- Barnsley Fern: 4 transforms, weights [0.85, 0.07, 0.07, 0.01]
+- Sierpiński: 3 transforms, equal weights, scale 0.5
+- Menger Cube: 20 transforms (caution: fast growth!)
+
+**Blender Versions**:
+- Target: Blender 4.0+ (Repeat Zone support)
+- Test on: 4.2 LTS (recommended)
+
+## Troubleshooting
+
+**Fractal doesn't appear**:
+- Check: All weights > 0, iterations > 3, valid instance mesh
+
+**Viewport lag**:
+- Solution: Reduce iterations to 6, use Points output mode
+
+**Export fails**:
+- Check: Point count < 10M, instances realized if needed
+
+**Preset won't load**:
+- Validate: JSON syntax, schema compliance, UTF-8 encoding
+
+## External Resources
+
+- Blender Geometry Nodes: https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/
+- IFS Theory: "Fractals Everywhere" by Michael Barnsley
+- MCP Spec: https://modelcontextprotocol.io
+- JSON Schema: https://json-schema.org/
+
+## Project Philosophy
+
+**Design Values**:
+1. **Simplicity**: Prefer clear solutions over clever ones
+2. **Performance**: User experience matters (target 60fps)
+3. **Extensibility**: Build for future phases (especially MCP)
+4. **Education**: Code and nodes should teach IFS concepts
+5. **Community**: Document everything for contributors
+
+**When in Doubt**:
+- Check architecture.md for design rationale
+- Ask before breaking constraints
+- Prioritize user experience over feature count
+- Document decisions that seem arbitrary
+
+---
+
+**Last Updated**: 2025-11-11  
+**Documentation Version**: 1.0  
+**Current Phase**: 1 (Core Implementation)
+
+For questions, see `docs/README.md` or `docs/quick-reference.md`.
+

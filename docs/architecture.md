@@ -216,6 +216,8 @@ Blender API Call → Node Update → Geometry Output → Agent Feedback
 - Basic color mapping and material assignment
 - Performance optimization for real-time preview
 - Export to common 3D formats
+- Comprehensive test suite (TDD approach)
+- Automated validation and quality assurance
 
 ### Out of Scope (Current Phase)
 - Non-IFS fractal types (L-systems, DLA, etc.)
@@ -240,6 +242,7 @@ Blender API Call → Node Update → Geometry Output → Agent Feedback
 ### Maintainability
 - **Documentation**: Inline node comments, external architecture docs
 - **Modularity**: Grouped sub-networks for transforms, colors, utilities
+- **Testing**: Comprehensive test suite with 80%+ coverage
 
 ### Extensibility
 - **Plugin Architecture**: Clean interfaces for new transform types
@@ -248,6 +251,14 @@ Blender API Call → Node Update → Geometry Output → Agent Feedback
 ### Usability
 - **Sensible Defaults**: Barnsley Fern preset loaded on startup
 - **Progressive Disclosure**: Basic params exposed, advanced in collapsed panels
+
+### Testability
+- **Test-Driven Development**: Write tests before implementation
+- **Unit Testing**: Fast, isolated tests for Python modules (80%+ coverage)
+- **Integration Testing**: Blender API interaction validation
+- **Preset Testing**: Automated schema validation for all presets
+- **Performance Testing**: Benchmarks for point counts and FPS
+- **Continuous Integration**: Automated test runs on commits
 
 ---
 

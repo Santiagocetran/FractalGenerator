@@ -5,22 +5,39 @@ This document outlines the phased development approach for the IFS Fractal Gener
 
 ---
 
+## Development Approach
+
+**Methodology**: Test-Driven Development (TDD)
+
+All development follows the Red-Green-Refactor cycle:
+1. **Red**: Write failing test describing desired behavior
+2. **Green**: Implement minimal code to make test pass
+3. **Refactor**: Improve code quality while keeping tests green
+
+**Coverage Goals**:
+- Minimum: 80% overall coverage
+- Critical paths (preset loading, validation): 95%+
+- Integration tests: 70%+
+
 ## Development Phases
 
 ### Phase 1: Core Geometry Nodes Implementation
 **Goal**: Build functional IFS generator with single preset  
 **Duration**: 2-3 weeks  
-**Status**: 🔄 In Progress
+**Status**: 🔄 In Progress  
+**Testing**: TDD approach with pytest
 
 #### Milestones
 
 ##### 1.1 Basic Repeat Zone Structure
+- [ ] Write tests for node group interface (TDD)
 - [ ] Create node group with input/output interface
+- [ ] Write tests for iteration counter
 - [ ] Implement Repeat Zone with iteration counter
 - [ ] Set up point cloud initialization (single starting point)
 - [ ] Test basic iteration without transforms
 
-**Success Criteria**: Loop executes N times, outputs point count = N
+**Success Criteria**: Loop executes N times, outputs point count = N, all tests pass
 
 ##### 1.2 Single Transform Application
 - [ ] Add Scale/Rotate/Translate node chain
@@ -48,6 +65,8 @@ This document outlines the phased development approach for the IFS Fractal Gener
 
 #### Deliverables
 - `ifs_generator.blend` with functional node group
+- Test suite with 80%+ coverage
+- Integration tests for node group
 - Screenshot documentation of node graph
 - Basic usage instructions in README
 
@@ -84,17 +103,24 @@ This document outlines the phased development approach for the IFS Fractal Gener
 
 **Success Criteria**: Each preset produces expected fractal form
 
-##### 2.3 Python Preset Loader (Optional)
-- [ ] Script to read JSON and update node group
-- [ ] Validate schema before application
-- [ ] Error handling for malformed files
-- [ ] UI integration (custom panel or add-on stub)
+##### 2.3 Python Preset Loader
+- [ ] Write unit tests for preset loading (TDD)
+- [ ] Implement load_preset() function
+- [ ] Write tests for schema validation
+- [ ] Implement validate_preset() function
+- [ ] Write tests for error handling
+- [ ] Add error handling for malformed files
+- [ ] Write integration tests for node group application
+- [ ] Implement apply_preset() function
+- [ ] Achieve 90%+ test coverage for preset module
 
-**Success Criteria**: Button click loads preset into active node group
+**Success Criteria**: All tests pass, preset loads correctly, 90%+ coverage
 
 #### Deliverables
 - 3-5 validated JSON presets
-- `preset_loader.py` utility script
+- `preset_loader.py` utility script with 90%+ test coverage
+- Comprehensive test suite for preset validation
+- Automated tests for all existing presets
 - Preset gallery in `/assets/preview_renders/`
 
 #### Technical Challenges

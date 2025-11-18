@@ -15,6 +15,7 @@ graph TD
     
     Root --> Docs[docs/]
     Root --> Src[src/]
+    Root --> Tests[tests/]
     Root --> Assets[assets/]
     
     Docs --> DocsArch[architecture.md]
@@ -48,6 +49,19 @@ graph TD
     SrcMCP --> MCPRead[README.md]
     SrcMCP --> MCPServ[server.py]
     SrcMCP --> MCPTools[tools.py]
+    
+    Tests --> TestUnit[unit/]
+    Tests --> TestInteg[integration/]
+    Tests --> TestPre[presets/]
+    Tests --> TestFix[fixtures/]
+    Tests --> TestConf[conftest.py]
+    
+    TestUnit --> TU1[test_preset_loader.py]
+    TestUnit --> TU2[test_validator.py]
+    TestInteg --> TI1[test_node_group.py]
+    TestPre --> TP1[test_schema_validation.py]
+    TestFix --> TF1[valid_presets/]
+    TestFix --> TF2[invalid_presets/]
     
     Assets --> AssIcon[icons/]
     Assets --> AssRef[reference_images/]
@@ -90,6 +104,13 @@ graph LR
     subgraph "Configuration"
         CF1[src/presets/*.json]
         CF2[src/presets/schema.json]
+    end
+    
+    subgraph "Test Suite"
+        T1[tests/unit/]
+        T2[tests/integration/]
+        T3[tests/presets/]
+        T4[tests/fixtures/]
     end
     
     subgraph "Visual Assets"

@@ -205,6 +205,83 @@ Weights: equal distribution
 
 ---
 
+## 🧪 Testing Commands
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run unit tests only (fast, no Blender)
+pytest tests/unit/
+
+# Run integration tests (requires Blender)
+pytest tests/integration/
+
+# Run with coverage report
+pytest --cov=src --cov-report=html tests/
+
+# Run specific test file
+pytest tests/unit/test_preset_loader.py
+
+# Run tests matching pattern
+pytest -k "preset" tests/
+
+# Run with verbose output
+pytest -v tests/
+
+# Run tests and stop at first failure
+pytest -x tests/
+```
+
+### Test Coverage
+
+```bash
+# Generate HTML coverage report
+pytest --cov=src --cov-report=html tests/
+# Open htmlcov/index.html in browser
+
+# Show coverage in terminal
+pytest --cov=src --cov-report=term-missing tests/
+
+# Check if coverage meets minimum (80%)
+pytest --cov=src --cov-fail-under=80 tests/
+```
+
+### TDD Workflow
+
+```bash
+# 1. Write failing test
+# tests/unit/test_new_feature.py
+
+# 2. Run test (should fail - RED)
+pytest tests/unit/test_new_feature.py
+
+# 3. Implement minimal code to pass
+
+# 4. Run test (should pass - GREEN)
+pytest tests/unit/test_new_feature.py
+
+# 5. Refactor and ensure tests still pass
+
+# 6. Run all tests to ensure no regressions
+pytest tests/
+```
+
+### Pre-commit Testing
+
+```bash
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
+
+# Run pre-commit manually
+pre-commit run --all-files
+```
+
+---
+
 ## 🔧 Node Setup Patterns
 
 ### Basic Transform Pattern
