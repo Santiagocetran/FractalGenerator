@@ -87,10 +87,10 @@ class TestEnforceIterationLimits:
 
     def test_enforce_iteration_limits_iterations_too_low(self):
         """Test that iterations < 1 raise ValueError."""
-        with pytest.raises(ValueError, match="iterations.*must be.*at least 1"):
+        with pytest.raises(ValueError, match="[Ii]terations.*must be.*at least 1"):
             enforce_iteration_limits(4, 0)
 
-        with pytest.raises(ValueError, match="iterations.*must be.*at least 1"):
+        with pytest.raises(ValueError, match="[Ii]terations.*must be.*at least 1"):
             enforce_iteration_limits(2, -1)
 
     def test_enforce_iteration_limits_transform_count_too_high(self):
@@ -103,10 +103,10 @@ class TestEnforceIterationLimits:
 
     def test_enforce_iteration_limits_transform_count_too_low(self):
         """Test that transform_count < 1 raises ValueError."""
-        with pytest.raises(ValueError, match="transform.*count.*must be.*at least 1"):
+        with pytest.raises(ValueError, match="[Tt]ransform.*count.*must be.*at least 1"):
             enforce_iteration_limits(0, 5)
 
-        with pytest.raises(ValueError, match="transform.*count.*must be.*at least 1"):
+        with pytest.raises(ValueError, match="[Tt]ransform.*count.*must be.*at least 1"):
             enforce_iteration_limits(-1, 3)
 
     def test_enforce_iteration_limits_boundary_values(self):
